@@ -1,6 +1,11 @@
+#pragma once
 #include <iostream>
 class Allocator
 {
+private:
+    size_t max_size;
+    size_t offset;
+    char* ptr = nullptr;
 public:
     void makeAllocator(size_t maxSize);
     char* alloc(size_t size);

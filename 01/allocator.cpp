@@ -1,9 +1,25 @@
 #include "allocator.hpp"
-class Allocator
-{
-public:
-    void makeAllocator(size_t maxSize);
-    char* alloc(size_t size);
-    void reset();
-    ~Allocator();
-};
+
+void Allocator::makeAllocator(size_t maxSize){
+    if (ptr != nullptr){delete[] ptr;}
+    ptr = new char[maxSize];
+    offset = 0;
+    max_size = maxSize;
+}
+char* Allocator::alloc(size_t size){
+    if (offset + size > max_size){
+        return nullptr;
+    }
+    else{
+        char* tmp = ptr + offset;
+        offset += size;
+        return tmp;
+    }
+}
+void Allocator::reset(){
+    offset = 0;
+}
+Allocator::~Allocator(){
+    delete[] ptr;
+    ptr = nullptr;
+}
