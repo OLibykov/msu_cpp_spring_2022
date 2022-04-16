@@ -16,25 +16,25 @@ private:
 	std::vector<uint64_t> stat_str_;
 	uint64_t last_num_;
 	std::string last_str_;
-	
+
 public:
-    TokenParser() = default;
+	TokenParser() = default;
 
-    void SetStartCallback(void (*)());
+	void SetStartCallback(void (*)());
 
-    void SetEndCallback(void (*)(std::vector<uint64_t>, std::vector<uint64_t>));
+	void SetEndCallback(void (*)(std::vector<uint64_t>, std::vector<uint64_t>));
 
-    void SetDigitTokenCallback(uint64_t (*)(uint64_t));
-	
+	void SetDigitTokenCallback(uint64_t (*)(uint64_t));
+
 	void SetStringTokenCallback(uint64_t (*)(const std::string));
 
-    void Parse(const std::string &);
-	
+	void Parse(const std::string &);
+
 	std::vector<uint64_t> get_stat_num();
-	
+
 	std::vector<uint64_t> get_stat_str();
-	
+
 	uint64_t get_last_num();
-	
+
 	std::string get_last_str();
 };
