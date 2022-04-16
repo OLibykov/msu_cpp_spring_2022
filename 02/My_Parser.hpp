@@ -8,7 +8,7 @@
 class TokenParser
 {
 private:
-    std::function<void()> callback_start_;
+	std::function<void()> callback_start_;
 	std::function<void(std::vector<uint64_t>, std::vector<uint64_t>)> callback_end_;
 	std::function<uint64_t(uint64_t)> callback_num_;
 	std::function<uint64_t(const std::string)> callback_str_;
