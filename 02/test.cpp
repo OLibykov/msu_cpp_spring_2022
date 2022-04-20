@@ -3,8 +3,8 @@
 
 void (*start_1)() = [](){std::cout << "Start Parsing lambda" << std::endl;};
 void(*end_1)(std::vector<uint64_t>, std::vector<uint64_t>) = [](std::vector<uint64_t> , std::vector<uint64_t>){std::cout << "End Parsing lambda" << std::endl;};
-uint64_t (*num_1)(uint64_t) = [](uint64_t val){return val;};
-uint64_t (*str_1)(const std::string) = [](const std::string str){return str.length();};
+uint64_t (*num_1)(uint64_t) = [](uint64_t val) ->uint64_t {return val;};
+uint64_t (*str_1)(const std::string) = [](const std::string str) ->uint64_t {return str.length();};
 
 void start_2(){std::cout << "Start Parsing common" << std::endl;}
 void end_2(std::vector<uint64_t> num, std::vector<uint64_t> str){
