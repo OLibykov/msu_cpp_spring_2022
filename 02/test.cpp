@@ -1,23 +1,20 @@
 #include <gtest/gtest.h>
 #include "My_Parser.hpp"
 
-void (*start_1)() = [](){std::cout << "Start Parsing lambda" << std::endl;};
-void(*end_1)(std::vector<uint64_t>, std::vector<uint64_t>) = [](std::vector<uint64_t> , std::vector<uint64_t>){std::cout << "End Parsing lambda" << std::endl;};
-uint64_t (*num_1)(uint64_t) = [](uint64_t val) ->uint64_t {return val;};
-uint64_t (*str_1)(const std::string) = [](const std::string str) ->uint64_t {return str.length();};
+std::vector<uint64_t> test_vec_num;
+std::vector<uint64_t> test_vec_str;
 
-void start_2(){std::cout << "Start Parsing common" << std::endl;}
-void end_2(std::vector<uint64_t> num, std::vector<uint64_t> str){
-	for (auto it = num.begin(); it != num.end(); it++){std::cout << *it << ' ';}
-	std::cout << std::endl;
-	for (auto it = str.begin(); it != str.end(); it++){std::cout << *it << ' ';}
-	std::cout << std::endl;	
-	std::cout << "End Parsing common" << std::endl;
-}
-uint64_t num_2(uint64_t value){
-	return 2 * value;
-}
-uint64_t count_vowel_letter(const std::string str){
+void (*start_1)() = [](){test_vec_num.push_back(0);};
+void(*end_1)() = [](){test_vec_num.push_back(0);};
+void (*num_1)(uint64_t) = [](uint64_t val) {test_vec_num.push_back(val);};
+void (*str_1)(const std::string) = [](const std::string str) {test_vec_str.push_back(str.length());};
+
+void start_2(){test_vec_str.push_back(0);}
+void end_2(){test_vec_str.push_back(0);}
+void start_3(){}
+void end_3(){}
+void num_2(uint64_t value){test_vec_num.push_back(value - 1);}
+void count_vowel_letter(const std::string str){
     uint64_t cnt = 0;
     const std::string arr_lett = "AaEeIiOoUuYy";
     for(size_t i = 0; i < str.length(); i++){
@@ -25,7 +22,7 @@ uint64_t count_vowel_letter(const std::string str){
             arr_lett[j] == str[i]? cnt++ : 0;
 		}
     }
-    return cnt;
+    test_vec_str.push_back(cnt);
 }
 class MyTest : public ::testing::Test
 {
@@ -41,9 +38,25 @@ protected:
 TEST_F(MyTest, test_without_setup_callback)
 {
     TokenParser obj;
+	test_vec_num.clear();
+	test_vec_str.clear();
 	obj.Parse("Hello 222 world 1234 432");
-	ASSERT_EQ(obj.get_last_num(),  432);
-	ASSERT_STREQ(obj.get_last_str().c_str(),  "world");
+	ASSERT_TRUE(test_vec_num.empty());
+	ASSERT_TRUE(test_vec_str.empty());
+}
+
+TEST_F(MyTest, test_setup_callback_nullptr)
+{
+    TokenParser obj;
+	obj.SetStartCallback(nullptr);
+	obj.SetEndCallback(nullptr);
+	obj.SetDigitTokenCallback(nullptr);
+	obj.SetStringTokenCallback(nullptr);
+	test_vec_num.clear();
+	test_vec_str.clear();
+	obj.Parse("Hello 222 world 1234 432");
+	ASSERT_TRUE(test_vec_num.empty());
+	ASSERT_TRUE(test_vec_str.empty());
 }
 
 TEST_F(MyTest, with_lambda)
@@ -55,17 +68,19 @@ TEST_F(MyTest, with_lambda)
 	obj.SetDigitTokenCallback(num_1);
 	obj.SetStringTokenCallback(str_1);
 	
-	obj.Parse("hello 222 worlddd 1234 0");
+	test_vec_num.clear();
+	test_vec_str.clear();
+	obj.Parse("hello 222 worlddd 1234 1");
 	
-	ASSERT_EQ(obj.get_last_num(),  0);
-	auto stat_str = obj.get_stat_str();
-	auto stat_num = obj.get_stat_num();
-	ASSERT_EQ(stat_str.empty(), false);
-	ASSERT_EQ(stat_num.empty(), false);
-	std::vector<uint64_t> test_num = {222, 1234, 0};
-	std::vector<uint64_t> test_str = {5, 7};
-	for (size_t i = 0; i < test_num.size(); i++){ASSERT_EQ(test_num[i], stat_num[i]);}
-	for (size_t i = 0; i < test_str.size(); i++){ASSERT_EQ(test_str[i], stat_str[i]);}
+	ASSERT_FALSE(test_vec_num.empty());
+	ASSERT_FALSE(test_vec_str.empty());
+	std::vector<uint64_t> right_num = {0, 222, 1234, 1, 0};
+	std::vector<uint64_t> right_str = {5, 7};
+	ASSERT_EQ(test_vec_num.size(), right_num.size());
+	ASSERT_EQ(test_vec_str.size(), right_str.size());
+
+	for (size_t i = 0; i < right_num.size(); i++){ASSERT_EQ(test_vec_num[i], right_num[i]);}
+	for (size_t i = 0; i < right_str.size(); i++){ASSERT_EQ(test_vec_str[i], right_str[i]);}
 }
 TEST_F(MyTest, with_common_function)
 {
@@ -76,60 +91,152 @@ TEST_F(MyTest, with_common_function)
 	obj.SetDigitTokenCallback(num_2);
 	obj.SetStringTokenCallback(count_vowel_letter);
 	
-	obj.Parse("hello 222 worlddd 1234 0");
-	auto stat_str = obj.get_stat_str();
-	auto stat_num = obj.get_stat_num();
-	ASSERT_EQ(obj.get_last_num(),  0);
-	ASSERT_EQ(stat_str.empty(), false);
-	ASSERT_EQ(stat_num.empty(), false);
+	test_vec_num.clear();
+	test_vec_str.clear();
+	
+	obj.Parse("hello 222 worlddd 1234 5");
+	
+	ASSERT_FALSE(test_vec_num.empty());
+	ASSERT_FALSE(test_vec_str.empty());
 
-	std::vector<uint64_t> test_num = {444, 2468, 0};
-	std::vector<uint64_t> test_str = {2, 1};
-	for (size_t i = 0; i < test_num.size(); i++){ASSERT_EQ(test_num[i], stat_num[i]);}
-	for (size_t i = 0; i < test_str.size(); i++){ASSERT_EQ(test_str[i], stat_str[i]);}
+	std::vector<uint64_t> right_num = {221, 1233, 4};
+	std::vector<uint64_t> right_str = {0, 2, 1, 0};
+	
+	ASSERT_EQ(test_vec_num.size(), right_num.size());
+	ASSERT_EQ(test_vec_str.size(), right_str.size());
+
+	for (size_t i = 0; i < right_num.size(); i++){ASSERT_EQ(test_vec_num[i], right_num[i]);}
+	for (size_t i = 0; i < right_str.size(); i++){ASSERT_EQ(test_vec_str[i], right_str[i]);}
 }
 TEST_F(MyTest, sequence_parse)
 {
 	TokenParser obj;
 
-	obj.SetStartCallback(start_2);
-	obj.SetEndCallback(end_2);
+	obj.SetStartCallback(start_1);
+	obj.SetEndCallback(end_1);
 	obj.SetDigitTokenCallback(num_1);
 	
-	obj.Parse("222 0001234 0");
-	auto stat_num = obj.get_stat_num();
-	auto stat_str = obj.get_stat_str();
-	ASSERT_EQ(stat_str.empty(), true);
-	ASSERT_EQ(stat_num.empty(), false);
-	std::vector<uint64_t> test_num = {222, 1234, 0};
-	for (size_t i = 0; i < test_num.size(); i++){ASSERT_EQ(test_num[i], stat_num[i]);}
+	test_vec_num.clear();
+	test_vec_str.clear();
 	
+	obj.Parse("222 0001234 15");
+
+	ASSERT_FALSE(test_vec_num.empty());
+	ASSERT_TRUE(test_vec_str.empty());
+	
+	std::vector<uint64_t> right_num = {0, 222, 1234, 15, 0};
+	ASSERT_EQ(test_vec_num.size(), right_num.size());
+	for (size_t i = 0; i < test_vec_num.size(); i++){ASSERT_EQ(test_vec_num[i], right_num[i]);}
+	
+	obj.SetStartCallback(start_2);
+	obj.SetEndCallback(end_2);
 	obj.SetDigitTokenCallback(num_2);
 	obj.SetStringTokenCallback(count_vowel_letter);	
 	
-	obj.Parse("4Hello world4	Postavte tr0e4ku	3pozaluista3");
+	obj.Parse("Hello world42	Postavte tr0e4ku	33pozaluista33");
 	
-	stat_num = obj.get_stat_num();
-	stat_str = obj.get_stat_str();
-	ASSERT_EQ(stat_str.empty(), false);
-	ASSERT_EQ(stat_num.empty(), false);
-	std::vector<uint64_t> test_str = {2, 1, 3, 2, 5};
-	for (size_t i = 0; i < test_num.size(); i++){ASSERT_EQ(test_num[i], stat_num[i]);}
-	for (size_t i = 0; i < test_str.size(); i++){ASSERT_EQ(test_str[i], stat_str[i]);}
+	ASSERT_FALSE(test_vec_str.empty());
+	ASSERT_FALSE(test_vec_num.empty());
+	std::vector<uint64_t> right_str = {0, 2, 1, 3, 2, 5, 0};
+	ASSERT_EQ(test_vec_num.size(), right_num.size());
+	ASSERT_EQ(test_vec_str.size(), right_str.size());
+	
+	for (size_t i = 0; i < test_vec_num.size(); i++){ASSERT_EQ(test_vec_num[i], right_num[i]);}
+	for (size_t i = 0; i < test_vec_str.size(); i++){ASSERT_EQ(test_vec_str[i], right_str[i]);}
 	
 	obj.SetStringTokenCallback(str_1);
 	obj.Parse("1	2 tree 4 5 vishel zaichik	walk");
 	
-	stat_num = obj.get_stat_num();
-	stat_str = obj.get_stat_str();
-	ASSERT_EQ(stat_str.empty(), false);
-	ASSERT_EQ(stat_num.empty(), false);
-	std::vector<uint64_t> test_str2 = {2, 1, 3, 2, 5, 4, 6, 7, 4};
-	std::vector<uint64_t> test_num2 = {222, 1234, 0,  2, 4, 8, 10};
-	for (size_t i = 0; i < test_num2.size(); i++){ASSERT_EQ(test_num2[i], stat_num[i]);}
-	for (size_t i = 0; i < test_str2.size(); i++){ASSERT_EQ(test_str2[i], stat_str[i]);}
+	ASSERT_FALSE(test_vec_str.empty());
+	ASSERT_FALSE(test_vec_num.empty());
+	
+	std::vector<uint64_t> right_str2 = {0, 2, 1, 3, 2, 5, 0, 0, 4, 6, 7, 4, 0};
+	std::vector<uint64_t> right_num2 = {0, 222, 1234, 15, 0,  0, 1, 3, 4};
+	
+	ASSERT_EQ(test_vec_num.size(), right_num2.size());
+	ASSERT_EQ(test_vec_str.size(), right_str2.size());
+	
+	for (size_t i = 0; i < test_vec_num.size(); i++){ASSERT_EQ(test_vec_num[i], right_num2[i]);}
+	for (size_t i = 0; i < test_vec_str.size(); i++){ASSERT_EQ(test_vec_str[i], right_str2[i]);}
 }
+TEST_F(MyTest, edge_condition)
+{
+	TokenParser obj;
 
+	obj.SetStartCallback(start_3);
+	obj.SetEndCallback(end_3);
+	obj.SetDigitTokenCallback(num_1);
+	obj.SetStringTokenCallback(count_vowel_letter);
+	
+	test_vec_num.clear();
+	test_vec_str.clear();
+	
+	obj.Parse("");
+	
+	ASSERT_TRUE(test_vec_num.empty());
+	ASSERT_TRUE(test_vec_str.empty());
+	
+	test_vec_num.clear();
+	test_vec_str.clear();
+	
+	obj.Parse(" 		  ");
+	
+	ASSERT_TRUE(test_vec_num.empty());
+	ASSERT_TRUE(test_vec_str.empty());
+	
+	obj.Parse("    1    ");
+	
+	ASSERT_FALSE(test_vec_num.empty());
+	ASSERT_TRUE(test_vec_str.empty());
+	ASSERT_EQ(test_vec_num[0], 1);
+	
+	obj.Parse("    a    ");
+	
+	ASSERT_FALSE(test_vec_num.empty());
+	ASSERT_FALSE(test_vec_str.empty());
+	ASSERT_EQ(test_vec_num[0], 1);
+	ASSERT_EQ(test_vec_str[0], 1);
+	ASSERT_EQ(test_vec_num.size(), 1);
+	ASSERT_EQ(test_vec_str.size(), 1);
+	
+	test_vec_num.clear();
+	test_vec_str.clear();
+	
+	obj.Parse("42str");
+	ASSERT_TRUE(test_vec_num.empty());
+	ASSERT_FALSE(test_vec_str.empty());
+	ASSERT_EQ(test_vec_str[0], 0);
+	ASSERT_EQ(test_vec_str.size(), 1);
+	
+	test_vec_num.clear();
+	test_vec_str.clear();
+	
+	obj.Parse("0");
+	ASSERT_FALSE(test_vec_num.empty());
+	ASSERT_TRUE(test_vec_str.empty());
+	ASSERT_EQ(test_vec_num[0], 0);
+	ASSERT_EQ(test_vec_num.size(), 1);
+	
+	test_vec_num.clear();
+	test_vec_str.clear();
+	
+	obj.Parse("18446744073709551615");
+	ASSERT_FALSE(test_vec_num.empty());
+	ASSERT_TRUE(test_vec_str.empty());
+	ASSERT_EQ(test_vec_num[0], std::numeric_limits<uint64_t>::max());
+	ASSERT_EQ(test_vec_num.size(), 1);
+	
+	test_vec_num.clear();
+	test_vec_str.clear();
+	
+	std::string str = std::string(10000, 'a');
+	
+	obj.Parse(str);
+	ASSERT_TRUE(test_vec_num.empty());
+	ASSERT_FALSE(test_vec_str.empty());
+	ASSERT_EQ(test_vec_str[0], 10000);
+	ASSERT_EQ(test_vec_str.size(), 1);
+}
 
 int main(int argc, char *argv[])
 {

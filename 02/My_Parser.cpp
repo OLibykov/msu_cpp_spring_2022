@@ -3,26 +3,14 @@
 void TokenParser::SetStartCallback(void (*start)() = nullptr){
 	 callback_start_ = start;
 }
-void TokenParser::SetEndCallback(void (*end)(std::vector<uint64_t>, std::vector<uint64_t>) = nullptr){
+void TokenParser::SetEndCallback(void (*end)() = nullptr){
 	 callback_end_ = end;
 }
-void TokenParser::SetDigitTokenCallback(uint64_t (*digit)(uint64_t) = nullptr){
+void TokenParser::SetDigitTokenCallback(void (*digit)(uint64_t) = nullptr){
 	 callback_num_ = digit;
 }
-void TokenParser::SetStringTokenCallback(uint64_t (*str)(const std::string) = nullptr){
+void TokenParser::SetStringTokenCallback(void (*str)(const std::string) = nullptr){
 	 callback_str_ = str;
-}
-std::vector<uint64_t>  TokenParser::get_stat_num(){
-	return stat_num_; 
-}
-std::vector<uint64_t> TokenParser::get_stat_str(){
-	return stat_str_; 
-}
-uint64_t TokenParser::get_last_num(){
-	return last_num_; 
-}
-std::string TokenParser::get_last_str(){
-	return last_str_; 
 }
 
 void TokenParser::Parse(const std::string &str){
@@ -32,6 +20,10 @@ void TokenParser::Parse(const std::string &str){
 	std::string buf;
 	bool num;
 	while(it != str.end()){
+		while(it != str.end() && (*it == ' ' || *it =='\t')){
+			it++;
+		}
+		if (it  == str.end()){break;}
 		buf = "";
 		num = true;
 		while(it != str.end() && *it != ' ' && *it !='\t'){
@@ -42,21 +34,16 @@ void TokenParser::Parse(const std::string &str){
 		if (num){
 			std::stringstream stream(buf);
 			stream >> value;
-			last_num_ = value;
 			if (callback_num_){
-				stat_num_.push_back( callback_num_(value));
+				callback_num_(value);
 			}
 		}
 		else{
-			last_str_ = buf;
 			if (callback_str_){
-				stat_str_.push_back(callback_str_(buf));
+				callback_str_(buf);
 			}
-		}
-		if (*it == ' ' || *it == '\t'){
-			it++;
 		}
 	}
 	
-	if (callback_end_){callback_end_(stat_num_, stat_str_);}
+	if (callback_end_){callback_end_();}
 }
