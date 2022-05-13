@@ -31,10 +31,26 @@ void TokenParser::Parse(const std::string &str){
 			buf += *it;
 			it++;
 		}
-		if (num){
+		if (buf.size() > 20){//Размер 2^64
+			num = false;
+		}
+		if (num && buf.size() ==  20){
+			char last = buf[19];
+			buf.pop_back();
 			std::stringstream stream(buf);
 			stream >> value;
+			if (value > uint64_t(std::numeric_limits<uint64_t>::max() / 10) && last - '0' > 5){
+				num = false;
+			}
+			if (value == uint64_t(std::numeric_limits<uint64_t>::max() / 10) && last - '0' > 5){
+				num = false;
+			}
+			buf += last;
+		}
+		if (num){
 			if (callback_num_){
+				std::stringstream stream(buf);
+				stream >> value;
 				callback_num_(value);
 			}
 		}
