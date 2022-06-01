@@ -170,7 +170,7 @@ public:
 
     void push_back(T&& value) {
         resize(sz + 1, value); //initialize new element (class T may not have trivial constructor)
-        data[sz - 1] = value;
+        //data[sz - 1] = value;
     }
     void push_back(constref_t value) {
         resize(sz + 1, value);
