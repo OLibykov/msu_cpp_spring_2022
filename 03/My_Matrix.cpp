@@ -36,7 +36,7 @@ Matrix::ProxyRow::~ProxyRow(){
 }
 std::ostream& operator<<(std::ostream& out, const Matrix::ProxyRow &row){
 	for(size_t i = 0; i < row.len_; i++){
-		std::cout << row.data_[i] << ' ';
+		out << row.data_[i] << ' ';
 	}
 	return out;
 }
@@ -121,7 +121,7 @@ Matrix& Matrix::operator*=(int32_t mul){
 }
 std::ostream& operator<<(std::ostream& out, const Matrix &mat){
 	for(size_t i = 0; i < mat.n_row_; i++){
-		std::cout << mat.rows_[i] << std::endl;
+		out << mat.rows_[i] << std::endl;
 	}
 	return out;
 }

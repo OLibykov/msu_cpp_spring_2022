@@ -136,3 +136,81 @@ TEST_F(MyTest, test_sequence)
 	std::cout << m2 << std::endl;
 }
 
+TEST_F(MyTest, test_1xn_nx1_1x1_matrix)
+{
+	Matrix m1(1, 5);
+	Matrix m2(5, 1);
+	Matrix m3(1, 1);
+	ASSERT_EQ(m1.get_n_row(), 1);
+	ASSERT_EQ(m1.get_n_col(), 5);
+	ASSERT_EQ(m2.get_n_row(), 5);
+	ASSERT_EQ(m2.get_n_col(), 1);
+	ASSERT_EQ(m3.get_n_row(), 1);
+	ASSERT_EQ(m3.get_n_col(), 1);
+	Matrix m4(1, 5);
+	Matrix m5(5, 1);
+	Matrix m6(1, 1);
+	m3[0][0] = 2;
+	m6[0][0] = 6;
+	ASSERT_EQ((m3 + m3 + m3)[0][0], m6[0][0]);
+	ASSERT_TRUE((m3 *= 3) == m6);
+	for (size_t i = 0; i < 5; i++){
+		m1[0][i] = i;
+		m2[i][0] = i;
+		m4[0][i] = 2 * i;
+		m5[i][0] = 3 * i;
+	}
+	ASSERT_TRUE((m1 + m1) == m4);
+	ASSERT_TRUE((m2 *= 3) == m5);
+}
+
+TEST_F(MyTest, add_matrix_with_different_dimension)
+{
+	Matrix m1(1, 5);
+	Matrix m2(5, 1);
+	for (size_t i = 0; i < 5; i++){
+		m1[0][i] = i;
+		m2[i][0] = i;
+	}
+	ASSERT_THROW(m1 + m2, std::out_of_range);
+	ASSERT_THROW(m2 + m1, std::out_of_range);
+	ASSERT_THROW(m1 == m2, std::out_of_range);
+	ASSERT_THROW(m1 != m2, std::out_of_range);
+}
+
+TEST_F(MyTest, test_break_restore_equality)
+{
+	Matrix m1(5, 3);
+	Matrix m2(5, 3);
+	for (size_t i = 0; i < 5; i++){
+		for (size_t j = 0; j < 3; j++){
+			m1[i][j] = i + j;
+			m2[i][j] = i + j;
+		}
+	}
+	ASSERT_TRUE(m1 == m2);
+	m1[1][1] = 0;
+	ASSERT_FALSE(m1 == m2);
+	m2[1][1] = 0;
+	ASSERT_TRUE(m1 == m2);
+}
+
+TEST_F(MyTest, test_output)
+{
+	int32_t tmp;
+	//std::string tmp_str;
+	Matrix m1(5, 3);
+	for (size_t i = 0; i < 5; i++){
+		for (size_t j = 0; j < 3; j++){
+			m1[i][j] = 3 * i + j;
+		}
+	}
+	std::cout << m1;
+	std::stringstream oss;
+	oss << m1;
+	for (size_t i = 0; i < 15; i++){
+		static_cast<std::istream&>(oss) >> tmp;
+		ASSERT_EQ(tmp, i);
+		std::cout << tmp << std::endl;
+	}
+}
