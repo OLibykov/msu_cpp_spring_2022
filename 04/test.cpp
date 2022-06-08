@@ -14,46 +14,111 @@ protected:
 
 TEST_F(MyTest, test_constructor_and_operator_equal_and_cout)
 {
+	std::string tmp;
+	std::stringstream oss;
+	
 	BigInt a(123);
-	std::cout << a << std::endl;
+	oss << a << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "123");
+	
 	BigInt a1("18446744073709551615");
-	std::cout << a1 << std::endl;
+	oss << a1 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "18446744073709551615");
+	
 	std::string s("743686428628622989392");
 	BigInt a2(s);
-	std::cout << a2 << std::endl;
+	oss << a2 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), s.c_str());
+//конструктор копирования	
 	BigInt a3(a1);
+	oss << a1 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "18446744073709551615");
+	oss << a3 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "18446744073709551615");
+//конструктор перемещения
 	BigInt a4(std::move(a2));
-	std::cout << a3 << std::endl;
-	std::cout << a4 << std::endl;
-	a4 = a4;
-	std::cout << a4 << std::endl;
-	a3 = a4;
-	a3 = std::move(a1);
-	std::cout << a1 << std::endl;
-	std::cout << a2 << std::endl;
-	std::cout << a3 << std::endl;
-	std::cout << a4 << std::endl << std::endl;
-//negative	
-	BigInt b(-123);
-	std::cout << b << std::endl;
-	BigInt b1("-18446744073709551615");
-	std::cout << b1 << std::endl;
-	std::string s2("-743686428628622989392");
-	BigInt b2(s2);
-	std::cout << b2 << std::endl;
-	BigInt b3(b1);
-	BigInt b4(std::move(b2));
-	std::cout << b3 << std::endl;
-	std::cout << b4 << std::endl;
-	b4 = b4;
-	std::cout << b4 << std::endl;
-	b3 = b4;
-	b3 = std::move(b1);
-	std::cout << b1 << std::endl;
-	std::cout << b2 << std::endl;
-	std::cout << b3 << std::endl;
-	std::cout << b4 << std::endl;
+	oss << a2 << '_' << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "_");
+	oss << a4 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), s.c_str());
+//оператор копирования
+	a2 = a3;
+	oss << a2 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "18446744073709551615");
+	oss << a3 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "18446744073709551615");
+// оператор перемещения
+	a1 = std::move(a4);
+	oss << a4 << '_' << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "_");
+	oss << a1 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), s.c_str());
 }
+
+TEST_F(MyTest, test_constructor_and_operator_equal_and_cout_negative)
+{
+	std::string tmp;
+	std::stringstream oss;	
+	BigInt a(-123);
+	oss << a << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "-123");
+	
+	BigInt a1("-18446744073709551615");
+	oss << a1 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "-18446744073709551615");
+	
+	std::string s("-743686428628622989392");
+	BigInt a2(s);
+	oss << a2 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), s.c_str());
+//конструктор копирования	
+	BigInt a3(a1);
+	oss << a1 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "-18446744073709551615");
+	oss << a3 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "-18446744073709551615");
+//конструктор перемещения
+	BigInt a4(std::move(a2));
+	oss << a2 << '_' << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "_");
+	oss << a4 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), s.c_str());
+//оператор копирования
+	a2 = a3;
+	oss << a2 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "-18446744073709551615");
+	oss << a3 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "-18446744073709551615");
+// оператор перемещения
+	a1 = std::move(a4);
+	oss << a4 << '_' << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), "_");
+	oss << a1 << ' ';
+	oss >> tmp;
+	ASSERT_STREQ(tmp.c_str(), s.c_str());
+}
+
 TEST_F(MyTest, test_compare)
 {
 	BigInt a1("18446744073709551615");
@@ -165,6 +230,46 @@ TEST_F(MyTest, test_mul)
 	ASSERT_STREQ((a4 * 0).get_num().c_str(), "0");
 }
 
+TEST_F(MyTest, test_interesting_case_and_zero)
+{
+	BigInt a1("9999999999999999999");
+	BigInt a2("10000000000000000000");
+	BigInt a3("1111111111111111111");
+	BigInt a4("5");
+	BigInt a5("-5");
+	BigInt a6("6");
+	
+	ASSERT_STREQ((a1 + 1).get_num().c_str(), "10000000000000000000");
+	ASSERT_STREQ((a2 - 1).get_num().c_str(), "9999999999999999999");
+	ASSERT_STREQ((a2 - a1).get_num().c_str(), "1");
+	ASSERT_STREQ((a1 - a2).get_num().c_str(), "-1");
+	
+	ASSERT_STREQ((a3 * 3).get_num().c_str(), "3333333333333333333");
+	ASSERT_STREQ((a3 - 3).get_num().c_str(), "1111111111111111108");
+	ASSERT_STREQ((a3 + 3).get_num().c_str(), "1111111111111111114");
+	
+	ASSERT_STREQ((a1 * 1).get_num().c_str(), "9999999999999999999");
+	
+	ASSERT_STREQ((a4 * 4).get_num().c_str(), "20");
+	ASSERT_STREQ((a4 - 4).get_num().c_str(), "1");
+	ASSERT_STREQ((a4 + 4).get_num().c_str(), "9");
+	
+	ASSERT_STREQ((a4 * 0).get_num().c_str(), "0");
+	ASSERT_STREQ((a4 + 0).get_num().c_str(), "5");
+	ASSERT_STREQ((a4 - 0).get_num().c_str(), "5");
+	
+	ASSERT_STREQ((a5 * 0).get_num().c_str(), "0");
+	ASSERT_STREQ((a5 + 0).get_num().c_str(), "-5");
+	ASSERT_STREQ((a5 - 0).get_num().c_str(), "-5");
+	
+	ASSERT_STREQ((a4 * a5).get_num().c_str(), "-25");
+	ASSERT_STREQ((a4 + a5).get_num().c_str(), "0");
+	ASSERT_STREQ((a4 - a5).get_num().c_str(), "10");
+	
+	ASSERT_STREQ((a5 * a4).get_num().c_str(), "-25");
+	ASSERT_STREQ((a5 + a4).get_num().c_str(), "0");
+	ASSERT_STREQ((a5 - a4).get_num().c_str(), "-10");
+}
 int main(int argc, char *argv[]){
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

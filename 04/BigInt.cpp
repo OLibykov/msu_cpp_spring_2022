@@ -94,6 +94,9 @@ BigInt& BigInt::operator = (const BigInt& num){
 }
 
 BigInt& BigInt::operator = (BigInt&& num){
+	if (&num == this){
+		return *this;
+	}
 	delete [] data_;
 	len_ = num.len_;
 	minus_ = num.minus_;
@@ -106,10 +109,10 @@ BigInt& BigInt::operator = (BigInt&& num){
 
 std::ostream & operator<<(std::ostream& out, const BigInt& num){
 	if (num.minus_){
-		std::cout << '-';
+		out << '-';
 	}
 	for (size_t i = 0; i  < num.len_; i++){
-		std::cout << num.data_[num.len_ - i - 1];
+		out << num.data_[num.len_ - i - 1];
 	}
 	return out;
 }
@@ -157,7 +160,7 @@ BigInt BigInt::operator+(const BigInt& num) const{
 		size--;
 	}
 	else{
-		buf[size] = transfer;
+		buf[size - 1] = transfer;
 	}
 	BigInt a(buf, size, false);
 	return a;
